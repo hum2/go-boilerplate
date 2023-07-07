@@ -1,0 +1,25 @@
+summary: Creates a new user
+operationId: PostUser
+description: Creates a new user
+tags:
+  - user
+requestBody:
+  description: User to add to the store
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/PostUserRequest"
+responses:
+  "200":
+    description: pet response
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/UserResponse"
+  default:
+    description: unexpected error
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/ErrorResponse"

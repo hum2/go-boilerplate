@@ -1,0 +1,27 @@
+summary: delete a new user
+operationId: DeleteUser
+description: Deletes a user
+tags:
+  - user
+parameters:
+  - $ref: '#/components/parameters/UserIdParameter'
+requestBody:
+  description: User to delete to the store
+  required: true
+  content:
+    application/json:
+      schema:
+        $ref: "#/components/schemas/PutUserRequest"
+responses:
+  "200":
+    description: pet response
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/UserResponse"
+  default:
+    description: unexpected error
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/ErrorResponse"

@@ -1,0 +1,11 @@
+properties:
+  id:
+    type: string
+  name:
+    type: string
+  birthday:
+    type: string
+required:
+  - id
+  - name
+  - birthday

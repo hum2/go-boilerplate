@@ -1,0 +1,20 @@
+summary: Returns all users
+operationId: GetUsers
+description: Returns all users from the system that the user has access to
+tags:
+  - user
+responses:
+  "200":
+    description: pet response
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+  default:
+    description: unexpected error
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/ErrorResponse"

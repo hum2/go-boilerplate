@@ -1,0 +1,7 @@
+name: id
+in: path
+description: ID of pet to fetch
+required: true
+schema:
+  type: string
+  format: uuid

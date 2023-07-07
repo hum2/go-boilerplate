@@ -1,0 +1,36 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: go-boilerplate
+  description: TODO
+  termsOfService: https://swagger.io/terms/
+  contact:
+    name: Swagger API Team
+    email: apiteam@swagger.io
+    url: https://swagger.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: user
+    description: User operations
+
+paths:
+  #include: ./assets/user/path/root.yaml
+
+components:
+  parameters:
+    # Parameter
+    #include: ./assets/user/schema/parameter.yaml
+
+  schemas:
+    # Request
+    #include: ./assets/user/schema/request.yaml
+
+    # Response
+    #include: ./assets/_shared_schema/response.yaml
+    #include: ./assets/user/schema/response.yaml

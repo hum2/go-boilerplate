@@ -1,0 +1,20 @@
+summary: Get user by user id
+operationId: GetUser
+description: Get user by user id
+tags:
+  - user
+parameters:
+  - $ref: '#/components/parameters/UserIdParameter'
+responses:
+  "200":
+    description: pet response
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/UserResponse"
+  default:
+    description: unexpected error
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/ErrorResponse"

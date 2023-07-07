@@ -1,0 +1,13 @@
+/users:
+  get:
+    #include: ./get_users.yaml
+/user:
+  post:
+    #include: ./post.yaml
+/user/{id}:
+  get:
+    #include: ./get.yaml
+  put:
+    #include: ./put.yaml
+  delete:
+    #include: ./delete.yaml
