@@ -8,6 +8,60 @@ import (
 )
 
 var (
+	// DividendsColumns holds the columns for the "dividends" table.
+	DividendsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "dividend_amount", Type: field.TypeFloat32},
+		{Name: "dividend_date", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// DividendsTable holds the schema information for the "dividends" table.
+	DividendsTable = &schema.Table{
+		Name:       "dividends",
+		Columns:    DividendsColumns,
+		PrimaryKey: []*schema.Column{DividendsColumns[0]},
+	}
+	// InvestmentsColumns holds the columns for the "investments" table.
+	InvestmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "amount", Type: field.TypeInt64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// InvestmentsTable holds the schema information for the "investments" table.
+	InvestmentsTable = &schema.Table{
+		Name:       "investments",
+		Columns:    InvestmentsColumns,
+		PrimaryKey: []*schema.Column{InvestmentsColumns[0]},
+	}
+	// PledgesColumns holds the columns for the "pledges" table.
+	PledgesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+	}
+	// PledgesTable holds the schema information for the "pledges" table.
+	PledgesTable = &schema.Table{
+		Name:       "pledges",
+		Columns:    PledgesColumns,
+		PrimaryKey: []*schema.Column{PledgesColumns[0]},
+	}
+	// ProjectsColumns holds the columns for the "projects" table.
+	ProjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "goal", Type: field.TypeInt64},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ProjectsTable holds the schema information for the "projects" table.
+	ProjectsTable = &schema.Table{
+		Name:       "projects",
+		Columns:    ProjectsColumns,
+		PrimaryKey: []*schema.Column{ProjectsColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -22,11 +76,71 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// ProjectInvestmentProjectColumns holds the columns for the "project_investmentProject" table.
+	ProjectInvestmentProjectColumns = []*schema.Column{
+		{Name: "project_id", Type: field.TypeUUID},
+		{Name: "investment_id", Type: field.TypeUUID},
+	}
+	// ProjectInvestmentProjectTable holds the schema information for the "project_investmentProject" table.
+	ProjectInvestmentProjectTable = &schema.Table{
+		Name:       "project_investmentProject",
+		Columns:    ProjectInvestmentProjectColumns,
+		PrimaryKey: []*schema.Column{ProjectInvestmentProjectColumns[0], ProjectInvestmentProjectColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "project_investmentProject_project_id",
+				Columns:    []*schema.Column{ProjectInvestmentProjectColumns[0]},
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "project_investmentProject_investment_id",
+				Columns:    []*schema.Column{ProjectInvestmentProjectColumns[1]},
+				RefColumns: []*schema.Column{InvestmentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// UserInvestmentUserColumns holds the columns for the "user_investmentUser" table.
+	UserInvestmentUserColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeUUID},
+		{Name: "investment_id", Type: field.TypeUUID},
+	}
+	// UserInvestmentUserTable holds the schema information for the "user_investmentUser" table.
+	UserInvestmentUserTable = &schema.Table{
+		Name:       "user_investmentUser",
+		Columns:    UserInvestmentUserColumns,
+		PrimaryKey: []*schema.Column{UserInvestmentUserColumns[0], UserInvestmentUserColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_investmentUser_user_id",
+				Columns:    []*schema.Column{UserInvestmentUserColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_investmentUser_investment_id",
+				Columns:    []*schema.Column{UserInvestmentUserColumns[1]},
+				RefColumns: []*schema.Column{InvestmentsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		DividendsTable,
+		InvestmentsTable,
+		PledgesTable,
+		ProjectsTable,
 		UsersTable,
+		ProjectInvestmentProjectTable,
+		UserInvestmentUserTable,
 	}
 )
 
 func init() {
+	ProjectInvestmentProjectTable.ForeignKeys[0].RefTable = ProjectsTable
+	ProjectInvestmentProjectTable.ForeignKeys[1].RefTable = InvestmentsTable
+	UserInvestmentUserTable.ForeignKeys[0].RefTable = UsersTable
+	UserInvestmentUserTable.ForeignKeys[1].RefTable = InvestmentsTable
 }

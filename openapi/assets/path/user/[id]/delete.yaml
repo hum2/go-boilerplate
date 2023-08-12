@@ -4,24 +4,24 @@ description: Deletes a user
 tags:
   - user
 parameters:
-  - $ref: '#/components/parameters/UserIdParameter'
+  - $ref: ../../../schema/parameter/UserIdParameter.yaml
 requestBody:
   description: User to delete to the store
   required: true
   content:
     application/json:
       schema:
-        $ref: "#/components/schemas/PutUserRequest"
+        $ref: ../../../schema/request/user/PutUserRequest.yaml
 responses:
   "200":
     description: pet response
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/UserResponse"
+          $ref: ../../../schema/response/user/UserResponse.yaml
   default:
     description: unexpected error
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/ErrorResponse"
+          $ref: ../../../schema/response/_shared/ErrorResponse.yaml

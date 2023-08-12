@@ -11,10 +11,10 @@ responses:
         schema:
           type: array
           items:
-            $ref: "#/components/schemas/UserResponse"
+            $ref: ../../schema/response/user/UserResponse.yaml
   default:
     description: unexpected error
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/ErrorResponse"
+          $ref: ../../schema/response/_shared/ErrorResponse.yaml

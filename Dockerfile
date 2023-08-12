@@ -32,6 +32,7 @@ RUN go install github.com/golang/mock/mockgen@latest
 RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.53.3
 RUN go get -d entgo.io/ent/cmd/ent
 RUN go install github.com/cosmtrek/air@latest
+RUN npm install -g @apidevtools/swagger-cli
 ENTRYPOINT ["make", "start_local"]
 
 # development

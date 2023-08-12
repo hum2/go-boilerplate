@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
+	"github.com/hum2/backend/ent/investment"
 	"github.com/hum2/backend/ent/predicate"
 	"github.com/hum2/backend/ent/user"
 )
@@ -60,9 +62,45 @@ func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	return uu
 }
 
+// AddInvestmentUserIDs adds the "investmentUser" edge to the Investment entity by IDs.
+func (uu *UserUpdate) AddInvestmentUserIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.AddInvestmentUserIDs(ids...)
+	return uu
+}
+
+// AddInvestmentUser adds the "investmentUser" edges to the Investment entity.
+func (uu *UserUpdate) AddInvestmentUser(i ...*Investment) *UserUpdate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uu.AddInvestmentUserIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearInvestmentUser clears all "investmentUser" edges to the Investment entity.
+func (uu *UserUpdate) ClearInvestmentUser() *UserUpdate {
+	uu.mutation.ClearInvestmentUser()
+	return uu
+}
+
+// RemoveInvestmentUserIDs removes the "investmentUser" edge to Investment entities by IDs.
+func (uu *UserUpdate) RemoveInvestmentUserIDs(ids ...uuid.UUID) *UserUpdate {
+	uu.mutation.RemoveInvestmentUserIDs(ids...)
+	return uu
+}
+
+// RemoveInvestmentUser removes "investmentUser" edges to Investment entities.
+func (uu *UserUpdate) RemoveInvestmentUser(i ...*Investment) *UserUpdate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uu.RemoveInvestmentUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -135,6 +173,51 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if uu.mutation.InvestmentUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedInvestmentUserIDs(); len(nodes) > 0 && !uu.mutation.InvestmentUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.InvestmentUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -187,9 +270,45 @@ func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	return uuo
 }
 
+// AddInvestmentUserIDs adds the "investmentUser" edge to the Investment entity by IDs.
+func (uuo *UserUpdateOne) AddInvestmentUserIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.AddInvestmentUserIDs(ids...)
+	return uuo
+}
+
+// AddInvestmentUser adds the "investmentUser" edges to the Investment entity.
+func (uuo *UserUpdateOne) AddInvestmentUser(i ...*Investment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uuo.AddInvestmentUserIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearInvestmentUser clears all "investmentUser" edges to the Investment entity.
+func (uuo *UserUpdateOne) ClearInvestmentUser() *UserUpdateOne {
+	uuo.mutation.ClearInvestmentUser()
+	return uuo
+}
+
+// RemoveInvestmentUserIDs removes the "investmentUser" edge to Investment entities by IDs.
+func (uuo *UserUpdateOne) RemoveInvestmentUserIDs(ids ...uuid.UUID) *UserUpdateOne {
+	uuo.mutation.RemoveInvestmentUserIDs(ids...)
+	return uuo
+}
+
+// RemoveInvestmentUser removes "investmentUser" edges to Investment entities.
+func (uuo *UserUpdateOne) RemoveInvestmentUser(i ...*Investment) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uuo.RemoveInvestmentUserIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -291,6 +410,51 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.InvestmentUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedInvestmentUserIDs(); len(nodes) > 0 && !uuo.mutation.InvestmentUserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.InvestmentUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

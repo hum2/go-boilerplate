@@ -1,4 +1,0 @@
-PostUserRequest:
-  #include: ./postUserRequest.yaml
-PutUserRequest:
-  #include: ./putUserRequest.yaml

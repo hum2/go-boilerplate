@@ -5,6 +5,9 @@ package ent
 import (
 	"time"
 
+	"github.com/hum2/backend/ent/dividend"
+	"github.com/hum2/backend/ent/investment"
+	"github.com/hum2/backend/ent/project"
 	"github.com/hum2/backend/ent/schema"
 	"github.com/hum2/backend/ent/user"
 )
@@ -13,6 +16,62 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	dividendFields := schema.Dividend{}.Fields()
+	_ = dividendFields
+	// dividendDescDividendAmount is the schema descriptor for dividend_amount field.
+	dividendDescDividendAmount := dividendFields[1].Descriptor()
+	// dividend.DividendAmountValidator is a validator for the "dividend_amount" field. It is called by the builders before save.
+	dividend.DividendAmountValidator = dividendDescDividendAmount.Validators[0].(func(float32) error)
+	// dividendDescCreatedAt is the schema descriptor for created_at field.
+	dividendDescCreatedAt := dividendFields[3].Descriptor()
+	// dividend.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dividend.DefaultCreatedAt = dividendDescCreatedAt.Default.(func() time.Time)
+	// dividendDescUpdatedAt is the schema descriptor for updated_at field.
+	dividendDescUpdatedAt := dividendFields[4].Descriptor()
+	// dividend.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	dividend.DefaultUpdatedAt = dividendDescUpdatedAt.Default.(func() time.Time)
+	// dividend.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	dividend.UpdateDefaultUpdatedAt = dividendDescUpdatedAt.UpdateDefault.(func() time.Time)
+	investmentFields := schema.Investment{}.Fields()
+	_ = investmentFields
+	// investmentDescAmount is the schema descriptor for amount field.
+	investmentDescAmount := investmentFields[1].Descriptor()
+	// investment.AmountValidator is a validator for the "amount" field. It is called by the builders before save.
+	investment.AmountValidator = investmentDescAmount.Validators[0].(func(int64) error)
+	// investmentDescCreatedAt is the schema descriptor for created_at field.
+	investmentDescCreatedAt := investmentFields[2].Descriptor()
+	// investment.DefaultCreatedAt holds the default value on creation for the created_at field.
+	investment.DefaultCreatedAt = investmentDescCreatedAt.Default.(func() time.Time)
+	// investmentDescUpdatedAt is the schema descriptor for updated_at field.
+	investmentDescUpdatedAt := investmentFields[3].Descriptor()
+	// investment.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	investment.DefaultUpdatedAt = investmentDescUpdatedAt.Default.(func() time.Time)
+	// investment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	investment.UpdateDefaultUpdatedAt = investmentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	projectFields := schema.Project{}.Fields()
+	_ = projectFields
+	// projectDescTitle is the schema descriptor for title field.
+	projectDescTitle := projectFields[1].Descriptor()
+	// project.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	project.TitleValidator = projectDescTitle.Validators[0].(func(string) error)
+	// projectDescDescription is the schema descriptor for description field.
+	projectDescDescription := projectFields[2].Descriptor()
+	// project.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	project.DescriptionValidator = projectDescDescription.Validators[0].(func(string) error)
+	// projectDescGoal is the schema descriptor for goal field.
+	projectDescGoal := projectFields[3].Descriptor()
+	// project.GoalValidator is a validator for the "goal" field. It is called by the builders before save.
+	project.GoalValidator = projectDescGoal.Validators[0].(func(int64) error)
+	// projectDescCreatedAt is the schema descriptor for created_at field.
+	projectDescCreatedAt := projectFields[6].Descriptor()
+	// project.DefaultCreatedAt holds the default value on creation for the created_at field.
+	project.DefaultCreatedAt = projectDescCreatedAt.Default.(func() time.Time)
+	// projectDescUpdatedAt is the schema descriptor for updated_at field.
+	projectDescUpdatedAt := projectFields[7].Descriptor()
+	// project.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	project.DefaultUpdatedAt = projectDescUpdatedAt.Default.(func() time.Time)
+	// project.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	project.UpdateDefaultUpdatedAt = projectDescUpdatedAt.UpdateDefault.(func() time.Time)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescName is the schema descriptor for name field.
