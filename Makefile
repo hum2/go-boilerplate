@@ -3,7 +3,7 @@
 export PROJECT_DIR := $(shell pwd)
 
 setup:
-	go get -u ./...
+	go mod tidy
 
 build:
 	go build -o bin/app ./cmd/server
@@ -22,11 +22,11 @@ lint_openapi:
 	npx --yes @stoplight/spectral-cli lint openapi/oapi-codegen.gen.yaml --ruleset openapi/.spectral.json
 
 generate_all:
-	ycl -i openapi/oapi-codegen.yamlycl -i openapi/oapi-codegen.yaml
+	$(MAKE) generate_oapi
 	go generate ./... > /dev/null
 
 generate_oapi:
-	ycl -i openapi/oapi-codegen.yamlycl -i openapi/oapi-codegen.yaml
+	swagger-cli bundle -o openapi/oapi-codegen.gen.yaml openapi/oapi-codegen.yaml -t yaml
 	go generate ./internal/controller/... > /dev/null
 
 generate_ent:

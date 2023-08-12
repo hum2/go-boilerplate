@@ -20,17 +20,28 @@ tags:
     description: User operations
 
 paths:
-  #include: ./assets/user/path/root.yaml
+  /users:
+    $ref: ./assets/path/users/root.yaml
+  /user:
+    $ref: ./assets/path/user/root.yaml
+  /user/{id}:
+    $ref: ./assets/path/user/[id]/root.yaml
 
 components:
   parameters:
     # Parameter
-    #include: ./assets/user/schema/parameter.yaml
+    UserIdParameter:
+      $ref: ./assets/schema/parameter/UserIdParameter.yaml
 
   schemas:
     # Request
-    #include: ./assets/user/schema/request.yaml
+    PostUserRequest:
+      $ref: ./assets/schema/request/user/PostUserRequest.yaml
+    PutUserRequest:
+      $ref: ./assets/schema/request/user/PutUserRequest.yaml
 
     # Response
-    #include: ./assets/_shared_schema/response.yaml
-    #include: ./assets/user/schema/response.yaml
+    ErrorResponse:
+      $ref: ./assets/schema/response/_shared/ErrorResponse.yaml
+    UserResponse:
+      $ref: ./assets/schema/response/user/UserResponse.yaml

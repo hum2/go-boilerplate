@@ -9,6 +9,54 @@ import (
 	"github.com/hum2/backend/ent"
 )
 
+// The DividendFunc type is an adapter to allow the use of ordinary
+// function as Dividend mutator.
+type DividendFunc func(context.Context, *ent.DividendMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DividendFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.DividendMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DividendMutation", m)
+}
+
+// The InvestmentFunc type is an adapter to allow the use of ordinary
+// function as Investment mutator.
+type InvestmentFunc func(context.Context, *ent.InvestmentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InvestmentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InvestmentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InvestmentMutation", m)
+}
+
+// The PledgeFunc type is an adapter to allow the use of ordinary
+// function as Pledge mutator.
+type PledgeFunc func(context.Context, *ent.PledgeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PledgeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PledgeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PledgeMutation", m)
+}
+
+// The ProjectFunc type is an adapter to allow the use of ordinary
+// function as Project mutator.
+type ProjectFunc func(context.Context, *ent.ProjectMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProjectMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)

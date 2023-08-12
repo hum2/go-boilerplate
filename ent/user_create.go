@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/hum2/backend/ent/investment"
 	"github.com/hum2/backend/ent/user"
 )
 
@@ -65,6 +66,21 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
 	return uc
+}
+
+// AddInvestmentUserIDs adds the "investmentUser" edge to the Investment entity by IDs.
+func (uc *UserCreate) AddInvestmentUserIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddInvestmentUserIDs(ids...)
+	return uc
+}
+
+// AddInvestmentUser adds the "investmentUser" edges to the Investment entity.
+func (uc *UserCreate) AddInvestmentUser(i ...*Investment) *UserCreate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uc.AddInvestmentUserIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -181,6 +197,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if nodes := uc.mutation.InvestmentUserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.InvestmentUserTable,
+			Columns: user.InvestmentUserPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(investment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

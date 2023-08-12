@@ -12,6 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/hum2/backend/ent/dividend"
+	"github.com/hum2/backend/ent/investment"
+	"github.com/hum2/backend/ent/pledge"
+	"github.com/hum2/backend/ent/project"
 	"github.com/hum2/backend/ent/user"
 )
 
@@ -73,7 +77,11 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			user.Table: user.ValidColumn,
+			dividend.Table:   dividend.ValidColumn,
+			investment.Table: investment.ValidColumn,
+			pledge.Table:     pledge.ValidColumn,
+			project.Table:    project.ValidColumn,
+			user.Table:       user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -6,5 +6,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Dividend is the predicate function for dividend builders.
+type Dividend func(*sql.Selector)
+
+// Investment is the predicate function for investment builders.
+type Investment func(*sql.Selector)
+
+// Pledge is the predicate function for pledge builders.
+type Pledge func(*sql.Selector)
+
+// Project is the predicate function for project builders.
+type Project func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

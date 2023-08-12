@@ -25,8 +25,29 @@ type User struct {
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt    time.Time `json:"updated_at,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// InvestmentUser holds the value of the investmentUser edge.
+	InvestmentUser []*Investment `json:"investmentUser,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// InvestmentUserOrErr returns the InvestmentUser value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) InvestmentUserOrErr() ([]*Investment, error) {
+	if e.loadedTypes[0] {
+		return e.InvestmentUser, nil
+	}
+	return nil, &NotLoadedError{edge: "investmentUser"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -96,6 +117,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
+}
+
+// QueryInvestmentUser queries the "investmentUser" edge of the User entity.
+func (u *User) QueryInvestmentUser() *InvestmentQuery {
+	return NewUserClient(u.config).QueryInvestmentUser(u)
 }
 
 // Update returns a builder for updating this User.

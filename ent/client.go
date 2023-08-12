@@ -14,6 +14,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/hum2/backend/ent/dividend"
+	"github.com/hum2/backend/ent/investment"
+	"github.com/hum2/backend/ent/pledge"
+	"github.com/hum2/backend/ent/project"
 	"github.com/hum2/backend/ent/user"
 )
 
@@ -22,6 +27,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Dividend is the client for interacting with the Dividend builders.
+	Dividend *DividendClient
+	// Investment is the client for interacting with the Investment builders.
+	Investment *InvestmentClient
+	// Pledge is the client for interacting with the Pledge builders.
+	Pledge *PledgeClient
+	// Project is the client for interacting with the Project builders.
+	Project *ProjectClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -37,6 +50,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Dividend = NewDividendClient(c.config)
+	c.Investment = NewInvestmentClient(c.config)
+	c.Pledge = NewPledgeClient(c.config)
+	c.Project = NewProjectClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -118,9 +135,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Dividend:   NewDividendClient(cfg),
+		Investment: NewInvestmentClient(cfg),
+		Pledge:     NewPledgeClient(cfg),
+		Project:    NewProjectClient(cfg),
+		User:       NewUserClient(cfg),
 	}, nil
 }
 
@@ -138,16 +159,20 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:        ctx,
+		config:     cfg,
+		Dividend:   NewDividendClient(cfg),
+		Investment: NewInvestmentClient(cfg),
+		Pledge:     NewPledgeClient(cfg),
+		Project:    NewProjectClient(cfg),
+		User:       NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		User.
+//		Dividend.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -169,22 +194,558 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Dividend.Use(hooks...)
+	c.Investment.Use(hooks...)
+	c.Pledge.Use(hooks...)
+	c.Project.Use(hooks...)
 	c.User.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Dividend.Intercept(interceptors...)
+	c.Investment.Intercept(interceptors...)
+	c.Pledge.Intercept(interceptors...)
+	c.Project.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *DividendMutation:
+		return c.Dividend.mutate(ctx, m)
+	case *InvestmentMutation:
+		return c.Investment.mutate(ctx, m)
+	case *PledgeMutation:
+		return c.Pledge.mutate(ctx, m)
+	case *ProjectMutation:
+		return c.Project.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// DividendClient is a client for the Dividend schema.
+type DividendClient struct {
+	config
+}
+
+// NewDividendClient returns a client for the Dividend from the given config.
+func NewDividendClient(c config) *DividendClient {
+	return &DividendClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dividend.Hooks(f(g(h())))`.
+func (c *DividendClient) Use(hooks ...Hook) {
+	c.hooks.Dividend = append(c.hooks.Dividend, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dividend.Intercept(f(g(h())))`.
+func (c *DividendClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Dividend = append(c.inters.Dividend, interceptors...)
+}
+
+// Create returns a builder for creating a Dividend entity.
+func (c *DividendClient) Create() *DividendCreate {
+	mutation := newDividendMutation(c.config, OpCreate)
+	return &DividendCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Dividend entities.
+func (c *DividendClient) CreateBulk(builders ...*DividendCreate) *DividendCreateBulk {
+	return &DividendCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Dividend.
+func (c *DividendClient) Update() *DividendUpdate {
+	mutation := newDividendMutation(c.config, OpUpdate)
+	return &DividendUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DividendClient) UpdateOne(d *Dividend) *DividendUpdateOne {
+	mutation := newDividendMutation(c.config, OpUpdateOne, withDividend(d))
+	return &DividendUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DividendClient) UpdateOneID(id uuid.UUID) *DividendUpdateOne {
+	mutation := newDividendMutation(c.config, OpUpdateOne, withDividendID(id))
+	return &DividendUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Dividend.
+func (c *DividendClient) Delete() *DividendDelete {
+	mutation := newDividendMutation(c.config, OpDelete)
+	return &DividendDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *DividendClient) DeleteOne(d *Dividend) *DividendDeleteOne {
+	return c.DeleteOneID(d.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *DividendClient) DeleteOneID(id uuid.UUID) *DividendDeleteOne {
+	builder := c.Delete().Where(dividend.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DividendDeleteOne{builder}
+}
+
+// Query returns a query builder for Dividend.
+func (c *DividendClient) Query() *DividendQuery {
+	return &DividendQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeDividend},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Dividend entity by its id.
+func (c *DividendClient) Get(ctx context.Context, id uuid.UUID) (*Dividend, error) {
+	return c.Query().Where(dividend.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DividendClient) GetX(ctx context.Context, id uuid.UUID) *Dividend {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DividendClient) Hooks() []Hook {
+	return c.hooks.Dividend
+}
+
+// Interceptors returns the client interceptors.
+func (c *DividendClient) Interceptors() []Interceptor {
+	return c.inters.Dividend
+}
+
+func (c *DividendClient) mutate(ctx context.Context, m *DividendMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DividendCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DividendUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DividendUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DividendDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Dividend mutation op: %q", m.Op())
+	}
+}
+
+// InvestmentClient is a client for the Investment schema.
+type InvestmentClient struct {
+	config
+}
+
+// NewInvestmentClient returns a client for the Investment from the given config.
+func NewInvestmentClient(c config) *InvestmentClient {
+	return &InvestmentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `investment.Hooks(f(g(h())))`.
+func (c *InvestmentClient) Use(hooks ...Hook) {
+	c.hooks.Investment = append(c.hooks.Investment, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `investment.Intercept(f(g(h())))`.
+func (c *InvestmentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Investment = append(c.inters.Investment, interceptors...)
+}
+
+// Create returns a builder for creating a Investment entity.
+func (c *InvestmentClient) Create() *InvestmentCreate {
+	mutation := newInvestmentMutation(c.config, OpCreate)
+	return &InvestmentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Investment entities.
+func (c *InvestmentClient) CreateBulk(builders ...*InvestmentCreate) *InvestmentCreateBulk {
+	return &InvestmentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Investment.
+func (c *InvestmentClient) Update() *InvestmentUpdate {
+	mutation := newInvestmentMutation(c.config, OpUpdate)
+	return &InvestmentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InvestmentClient) UpdateOne(i *Investment) *InvestmentUpdateOne {
+	mutation := newInvestmentMutation(c.config, OpUpdateOne, withInvestment(i))
+	return &InvestmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InvestmentClient) UpdateOneID(id uuid.UUID) *InvestmentUpdateOne {
+	mutation := newInvestmentMutation(c.config, OpUpdateOne, withInvestmentID(id))
+	return &InvestmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Investment.
+func (c *InvestmentClient) Delete() *InvestmentDelete {
+	mutation := newInvestmentMutation(c.config, OpDelete)
+	return &InvestmentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InvestmentClient) DeleteOne(i *Investment) *InvestmentDeleteOne {
+	return c.DeleteOneID(i.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InvestmentClient) DeleteOneID(id uuid.UUID) *InvestmentDeleteOne {
+	builder := c.Delete().Where(investment.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InvestmentDeleteOne{builder}
+}
+
+// Query returns a query builder for Investment.
+func (c *InvestmentClient) Query() *InvestmentQuery {
+	return &InvestmentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInvestment},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Investment entity by its id.
+func (c *InvestmentClient) Get(ctx context.Context, id uuid.UUID) (*Investment, error) {
+	return c.Query().Where(investment.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InvestmentClient) GetX(ctx context.Context, id uuid.UUID) *Investment {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Investment.
+func (c *InvestmentClient) QueryUser(i *Investment) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(investment.Table, investment.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, investment.UserTable, investment.UserPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProject queries the project edge of a Investment.
+func (c *InvestmentClient) QueryProject(i *Investment) *ProjectQuery {
+	query := (&ProjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(investment.Table, investment.FieldID, id),
+			sqlgraph.To(project.Table, project.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, investment.ProjectTable, investment.ProjectPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *InvestmentClient) Hooks() []Hook {
+	return c.hooks.Investment
+}
+
+// Interceptors returns the client interceptors.
+func (c *InvestmentClient) Interceptors() []Interceptor {
+	return c.inters.Investment
+}
+
+func (c *InvestmentClient) mutate(ctx context.Context, m *InvestmentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InvestmentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InvestmentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InvestmentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InvestmentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Investment mutation op: %q", m.Op())
+	}
+}
+
+// PledgeClient is a client for the Pledge schema.
+type PledgeClient struct {
+	config
+}
+
+// NewPledgeClient returns a client for the Pledge from the given config.
+func NewPledgeClient(c config) *PledgeClient {
+	return &PledgeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pledge.Hooks(f(g(h())))`.
+func (c *PledgeClient) Use(hooks ...Hook) {
+	c.hooks.Pledge = append(c.hooks.Pledge, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pledge.Intercept(f(g(h())))`.
+func (c *PledgeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Pledge = append(c.inters.Pledge, interceptors...)
+}
+
+// Create returns a builder for creating a Pledge entity.
+func (c *PledgeClient) Create() *PledgeCreate {
+	mutation := newPledgeMutation(c.config, OpCreate)
+	return &PledgeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Pledge entities.
+func (c *PledgeClient) CreateBulk(builders ...*PledgeCreate) *PledgeCreateBulk {
+	return &PledgeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Pledge.
+func (c *PledgeClient) Update() *PledgeUpdate {
+	mutation := newPledgeMutation(c.config, OpUpdate)
+	return &PledgeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PledgeClient) UpdateOne(pl *Pledge) *PledgeUpdateOne {
+	mutation := newPledgeMutation(c.config, OpUpdateOne, withPledge(pl))
+	return &PledgeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PledgeClient) UpdateOneID(id int) *PledgeUpdateOne {
+	mutation := newPledgeMutation(c.config, OpUpdateOne, withPledgeID(id))
+	return &PledgeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Pledge.
+func (c *PledgeClient) Delete() *PledgeDelete {
+	mutation := newPledgeMutation(c.config, OpDelete)
+	return &PledgeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PledgeClient) DeleteOne(pl *Pledge) *PledgeDeleteOne {
+	return c.DeleteOneID(pl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PledgeClient) DeleteOneID(id int) *PledgeDeleteOne {
+	builder := c.Delete().Where(pledge.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PledgeDeleteOne{builder}
+}
+
+// Query returns a query builder for Pledge.
+func (c *PledgeClient) Query() *PledgeQuery {
+	return &PledgeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePledge},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Pledge entity by its id.
+func (c *PledgeClient) Get(ctx context.Context, id int) (*Pledge, error) {
+	return c.Query().Where(pledge.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PledgeClient) GetX(ctx context.Context, id int) *Pledge {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PledgeClient) Hooks() []Hook {
+	return c.hooks.Pledge
+}
+
+// Interceptors returns the client interceptors.
+func (c *PledgeClient) Interceptors() []Interceptor {
+	return c.inters.Pledge
+}
+
+func (c *PledgeClient) mutate(ctx context.Context, m *PledgeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PledgeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PledgeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PledgeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PledgeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Pledge mutation op: %q", m.Op())
+	}
+}
+
+// ProjectClient is a client for the Project schema.
+type ProjectClient struct {
+	config
+}
+
+// NewProjectClient returns a client for the Project from the given config.
+func NewProjectClient(c config) *ProjectClient {
+	return &ProjectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `project.Hooks(f(g(h())))`.
+func (c *ProjectClient) Use(hooks ...Hook) {
+	c.hooks.Project = append(c.hooks.Project, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `project.Intercept(f(g(h())))`.
+func (c *ProjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Project = append(c.inters.Project, interceptors...)
+}
+
+// Create returns a builder for creating a Project entity.
+func (c *ProjectClient) Create() *ProjectCreate {
+	mutation := newProjectMutation(c.config, OpCreate)
+	return &ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Project entities.
+func (c *ProjectClient) CreateBulk(builders ...*ProjectCreate) *ProjectCreateBulk {
+	return &ProjectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Project.
+func (c *ProjectClient) Update() *ProjectUpdate {
+	mutation := newProjectMutation(c.config, OpUpdate)
+	return &ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProjectClient) UpdateOne(pr *Project) *ProjectUpdateOne {
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProject(pr))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProjectClient) UpdateOneID(id uuid.UUID) *ProjectUpdateOne {
+	mutation := newProjectMutation(c.config, OpUpdateOne, withProjectID(id))
+	return &ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Project.
+func (c *ProjectClient) Delete() *ProjectDelete {
+	mutation := newProjectMutation(c.config, OpDelete)
+	return &ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProjectClient) DeleteOne(pr *Project) *ProjectDeleteOne {
+	return c.DeleteOneID(pr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProjectClient) DeleteOneID(id uuid.UUID) *ProjectDeleteOne {
+	builder := c.Delete().Where(project.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProjectDeleteOne{builder}
+}
+
+// Query returns a query builder for Project.
+func (c *ProjectClient) Query() *ProjectQuery {
+	return &ProjectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProject},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Project entity by its id.
+func (c *ProjectClient) Get(ctx context.Context, id uuid.UUID) (*Project, error) {
+	return c.Query().Where(project.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProjectClient) GetX(ctx context.Context, id uuid.UUID) *Project {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInvestmentProject queries the investmentProject edge of a Project.
+func (c *ProjectClient) QueryInvestmentProject(pr *Project) *InvestmentQuery {
+	query := (&InvestmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(project.Table, project.FieldID, id),
+			sqlgraph.To(investment.Table, investment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, project.InvestmentProjectTable, project.InvestmentProjectPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProjectClient) Hooks() []Hook {
+	return c.hooks.Project
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProjectClient) Interceptors() []Interceptor {
+	return c.inters.Project
+}
+
+func (c *ProjectClient) mutate(ctx context.Context, m *ProjectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Project mutation op: %q", m.Op())
 	}
 }
 
@@ -281,6 +842,22 @@ func (c *UserClient) GetX(ctx context.Context, id uuid.UUID) *User {
 	return obj
 }
 
+// QueryInvestmentUser queries the investmentUser edge of a User.
+func (c *UserClient) QueryInvestmentUser(u *User) *InvestmentQuery {
+	query := (&InvestmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(investment.Table, investment.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.InvestmentUserTable, user.InvestmentUserPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -309,9 +886,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		User []ent.Hook
+		Dividend, Investment, Pledge, Project, User []ent.Hook
 	}
 	inters struct {
-		User []ent.Interceptor
+		Dividend, Investment, Pledge, Project, User []ent.Interceptor
 	}
 )
