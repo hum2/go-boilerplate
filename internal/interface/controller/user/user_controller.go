@@ -5,6 +5,7 @@ package user
 import (
 	"github.com/gin-gonic/gin"
 	idVo "github.com/hum2/backend/internal/domain/user/id"
+	"github.com/hum2/backend/internal/interface/controller/shared"
 	"github.com/hum2/backend/internal/interface/controller/user/gen"
 	usecase "github.com/hum2/backend/internal/usecase/user"
 	"net/http"
@@ -38,7 +39,7 @@ func (c *Controller) GetUser(ctx *gin.Context, id gen.UserIdParameter) {
 		userOutput[i] = gen.UserResponse{
 			Id:       user.ID().UUID().String(),
 			Name:     user.Name(),
-			Birthday: user.BirthdayString(),
+			Birthday: shared.FormatDateOnly(user.Birthday()),
 		}
 	}
 	ctx.JSON(http.StatusOK, gin.H{
@@ -61,7 +62,7 @@ func (c *Controller) GetUsers(ctx *gin.Context) {
 		userOutput[i] = gen.UserResponse{
 			Id:       user.ID().UUID().String(),
 			Name:     user.Name(),
-			Birthday: user.BirthdayString(),
+			Birthday: shared.FormatDateOnly(user.Birthday()),
 		}
 	}
 	ctx.JSON(http.StatusOK, gin.H{
@@ -89,7 +90,7 @@ func (c *Controller) PostUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"user": gen.UserResponse{
 			Id:       user.ID().UUID().String(),
-			Birthday: user.BirthdayString(),
+			Birthday: shared.FormatDateOnly(user.Birthday()),
 			Name:     user.Name(),
 		},
 	})
