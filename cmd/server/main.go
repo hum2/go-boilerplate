@@ -1,4 +1,3 @@
-//go:generate go run github.com/google/wire/cmd/wire
 package main
 
 import (
@@ -7,9 +6,6 @@ import (
 	"github.com/hum2/backend/internal/interface/middleware"
 )
 
-func test() {
-
-}
 func main() {
 	app, err := InitializeApp()
 	if err != nil {
